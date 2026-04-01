@@ -10,7 +10,7 @@ import {
   type SimulationLinkDatum,
   type SimulationNodeDatum,
 } from "d3-force";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 
 import { Card } from "@/components/ui/Card";
 import type { Idea } from "@/types";
@@ -54,22 +54,18 @@ export function IdeaGalaxy({ ideas }: { ideas: Idea[] }) {
       }
     }
 
-    return { nodes, links };
-  }, [ideas]);
-
-  useEffect(() => {
-    if (graph.nodes.length === 0) {
-      return;
+    if (nodes.length === 0) {
+      return { nodes, links };
     }
 
-    const simulation = forceSimulation(graph.nodes)
+    const simulation = forceSimulation(nodes)
       .force("charge", forceManyBody().strength(-130))
       .force("center", forceCenter(280, 210))
       .force("x", forceX(280).strength(0.02))
       .force("y", forceY(210).strength(0.02))
       .force(
         "link",
-        forceLink(graph.links)
+        forceLink(links)
           .id((d) => (d as NodeDatum).id)
           .distance(92),
       );
@@ -77,10 +73,11 @@ export function IdeaGalaxy({ ideas }: { ideas: Idea[] }) {
     simulation.tick(120);
     simulation.stop();
 
-    return () => {
-      simulation.stop();
+    return {
+      nodes,
+      links,
     };
-  }, [graph]);
+  }, [ideas]);
 
   return (
     <Card className="space-y-3">

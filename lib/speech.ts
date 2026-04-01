@@ -7,7 +7,7 @@ export interface SpeechResult {
 
 type SpeechRecognitionType = typeof window.SpeechRecognition;
 
-function getSpeechRecognition(): SpeechRecognitionType | null {
+function getSpeechRecognitionConstructor(): SpeechRecognitionType | null {
   if (typeof window === "undefined") {
     return null;
   }
@@ -21,16 +21,38 @@ function getSpeechRecognition(): SpeechRecognitionType | null {
 }
 
 export function supportsSpeechRecognition(): boolean {
-  return Boolean(getSpeechRecognition());
+  return Boolean(getSpeechRecognitionConstructor());
 }
 
 export function transcribeOnce(language = "en-US"): Promise<SpeechResult> {
   return new Promise((resolve, reject) => {
-    const SpeechRecognitionImpl = getSpeechRecognition();
+    const SpeechRecognitionImpl = getSpeechRecognitionConstructor();
 
     if (!SpeechRecognitionImpl) {
       reject(new Error("Speech recognition is not supported in this browser."));
       return;
+    }
+
+    let settled = false;
+
+    const finishWithError = (message: string) => {
+      if (!settled) {
+        settled = true;
+        reject(new Error(message));
+      }
+    };
+
+    const finishWithResult = (result: SpeechResult) => {
+      if (!settled) {
+        settled = true;
+        resolve(result);
+      }
+    };
+
+    if (navigator?.mediaDevices?.getUserMedia) {
+      navigator.mediaDevices.getUserMedia({ audio: true }).catch(() => {
+        // SpeechRecognition will surface a permission error if this fails.
+      });
     }
 
     const recognition = new SpeechRecognitionImpl();
@@ -42,15 +64,37 @@ export function transcribeOnce(language = "en-US"): Promise<SpeechResult> {
     recognition.onresult = (event: SpeechRecognitionEvent) => {
       const first = event.results[0]?.[0];
       if (!first) {
-        reject(new Error("No transcript captured."));
+        finishWithError("No transcript captured.");
         return;
       }
 
-      resolve({ transcript: first.transcript, confidence: first.confidence ?? 0.8 });
+      finishWithResult({ transcript: first.transcript, confidence: first.confidence ?? 0.8 });
+      recognition.stop();
     };
 
-    recognition.onerror = () => reject(new Error("Speech recognition failed."));
-    recognition.start();
+    recognition.onend = () => {
+      finishWithError("No speech detected. Try speaking closer to the microphone.");
+    };
+
+    recognition.onerror = (event: SpeechRecognitionErrorEvent) => {
+      if (event.error === "not-allowed") {
+        finishWithError("Microphone permission denied.");
+        return;
+      }
+
+      if (event.error === "no-speech") {
+        finishWithError("No speech detected. Try again.");
+        return;
+      }
+
+      finishWithError(`Speech recognition failed (${event.error}).`);
+    };
+
+    try {
+      recognition.start();
+    } catch {
+      finishWithError("Unable to start speech recognition. Retry in a supported browser.");
+    }
   });
 }
 
@@ -69,9 +113,16 @@ declare global {
     interimResults: boolean;
     lang: string;
     maxAlternatives: number;
-    onerror: (() => void) | null;
+    onend: (() => void) | null;
+    onerror: ((event: SpeechRecognitionErrorEvent) => void) | null;
     onresult: ((event: SpeechRecognitionEvent) => void) | null;
     start(): void;
+    stop(): void;
+  }
+
+  interface SpeechRecognitionErrorEvent {
+    error: string;
+    message?: string;
   }
 
   interface SpeechRecognitionEvent {

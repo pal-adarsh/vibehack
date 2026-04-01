@@ -15,7 +15,9 @@ export function AppScaffold({ children }: { children: ReactNode }) {
         <div className="flex min-h-screen min-w-0 flex-1 flex-col">
           <TopBar />
           <main className="flex-1 p-4 md:p-6">
-            <PageTransition>{children}</PageTransition>
+            <div className="mx-auto w-full max-w-7xl">
+              <PageTransition>{children}</PageTransition>
+            </div>
           </main>
         </div>
       </div>

@@ -14,6 +14,9 @@ const links = [
   { href: "/galaxy", label: "Idea Galaxy" },
   { href: "/focus", label: "Focus Mode" },
   { href: "/report", label: "Weekly Report" },
+  { href: "/notes", label: "Notes" },
+  { href: "/bookmarks", label: "Bookmarks" },
+  { href: "/todos", label: "To-Do List" },
   { href: "/rooms", label: "Rooms" },
 ];
 

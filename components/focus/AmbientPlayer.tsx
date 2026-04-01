@@ -10,12 +10,19 @@ type Soundscape = "off" | "lofi" | "rain" | "white";
 export function AmbientPlayer() {
   const [active, setActive] = useState<Soundscape>("off");
   const contextRef = useRef<AudioContext | null>(null);
-  const sourceRef = useRef<AudioBufferSourceNode | OscillatorNode | null>(null);
+  const sourceRef = useRef<Array<AudioBufferSourceNode | OscillatorNode>>([]);
   const gainRef = useRef<GainNode | null>(null);
 
   useEffect(() => {
     return () => {
-      sourceRef.current?.disconnect();
+      sourceRef.current.forEach((source) => {
+        try {
+          source.stop();
+        } catch {
+          // no-op
+        }
+        source.disconnect();
+      });
       gainRef.current?.disconnect();
       contextRef.current?.close().catch(() => undefined);
     };
@@ -23,7 +30,11 @@ export function AmbientPlayer() {
 
   const ensureContext = async () => {
     if (!contextRef.current) {
-      contextRef.current = new AudioContext();
+      const Context = window.AudioContext || (window as typeof window & { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
+      if (!Context) {
+        throw new Error("Web Audio is not supported in this browser.");
+      }
+      contextRef.current = new Context();
     }
 
     if (contextRef.current.state === "suspended") {
@@ -34,14 +45,17 @@ export function AmbientPlayer() {
   };
 
   const stop = () => {
-    if (sourceRef.current) {
-      sourceRef.current.disconnect();
-      if ("stop" in sourceRef.current) {
-        sourceRef.current.stop();
+    sourceRef.current.forEach((source) => {
+      try {
+        source.stop();
+      } catch {
+        // Source may have already stopped.
       }
-    }
+      source.disconnect();
+    });
+
     gainRef.current?.disconnect();
-    sourceRef.current = null;
+    sourceRef.current = [];
     gainRef.current = null;
     setActive("off");
   };
@@ -51,24 +65,25 @@ export function AmbientPlayer() {
 
     const context = await ensureContext();
     const gain = context.createGain();
-    gain.gain.value = kind === "white" ? 0.035 : 0.05;
+    gain.gain.value = kind === "white" ? 0.08 : 0.12;
     gain.connect(context.destination);
     gainRef.current = gain;
 
     if (kind === "lofi") {
       const osc = context.createOscillator();
       osc.type = "triangle";
-      osc.frequency.value = 180;
+      osc.frequency.value = 165;
       const lfo = context.createOscillator();
       const lfoGain = context.createGain();
-      lfo.frequency.value = 0.2;
+      lfo.frequency.value = 0.35;
       lfoGain.gain.value = 12;
       lfo.connect(lfoGain);
       lfoGain.connect(osc.frequency);
       osc.connect(gain);
+      lfo.connect(gain);
       osc.start();
       lfo.start();
-      sourceRef.current = osc;
+      sourceRef.current = [osc, lfo];
       setActive(kind);
       return;
     }
@@ -99,7 +114,7 @@ export function AmbientPlayer() {
     filter.connect(gain);
     noise.start();
 
-    sourceRef.current = noise;
+    sourceRef.current = [noise];
     setActive(kind);
   };
 

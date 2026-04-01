@@ -114,7 +114,11 @@ export function IdeaForm({ onIdeaCreated }: IdeaFormProps) {
 
   const captureVoice = async () => {
     if (!supportsSpeechRecognition()) {
-      push({ title: "Voice unavailable", description: "Browser does not support Web Speech API.", tone: "error" });
+      push({
+        title: "Voice unavailable",
+        description: "Use Chrome/Edge over HTTPS or localhost to enable Web Speech API.",
+        tone: "error",
+      });
       return;
     }
 
