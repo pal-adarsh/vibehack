@@ -1,0 +1,24 @@
+{
+  "name": "Second Brain OS",
+  "short_name": "SBOS",
+  "description": "Stop collecting. Start executing.",
+  "theme_color": "#ff7a1a",
+  "background_color": "#0e0e14",
+  "display": "standalone",
+  "scope": "/",
+  "start_url": "/dashboard",
+  "icons": [
+    {
+      "src": "/icons/icon-192.svg",
+      "sizes": "192x192",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-512.svg",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

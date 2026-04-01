@@ -1,26 +1,92 @@
 @import "tailwindcss";
+@import "../styles/animations.css";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+[data-theme="dark"] {
+  --bg: #0e0e14;
+  --bg-soft: #1a1a24;
+  --panel: #161724;
+  --ink: #f4f4f7;
+  --ink-muted: #b8bdd0;
+  --accent: #ff7a1a;
+  --accent-strong: #ff9447;
+  --accent-contrast: #1a1106;
+  --accent-2: #3ba1ff;
+  --secondary: #1f2a55;
+  --border: #2c3043;
+}
+
+[data-theme="light"] {
+  --bg: #f3f5f7;
+  --bg-soft: #e8edf1;
+  --panel: #ffffff;
+  --ink: #181f29;
+  --ink-muted: #4d596b;
+  --accent: #0f8a5f;
+  --accent-strong: #16a070;
+  --accent-contrast: #f2fff8;
+  --accent-2: #2478ff;
+  --secondary: #d5e7ff;
+  --border: #d3dce8;
+}
+
+[data-theme="sunset"] {
+  --bg: #180c07;
+  --bg-soft: #2a130b;
+  --panel: #25120d;
+  --ink: #fff0de;
+  --ink-muted: #d5bcaa;
+  --accent: #ff8b3a;
+  --accent-strong: #ff9f59;
+  --accent-contrast: #2d1201;
+  --accent-2: #ffd36f;
+  --secondary: #6f2d16;
+  --border: #543023;
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-bg: var(--bg);
+  --color-bg-soft: var(--bg-soft);
+  --color-panel: var(--panel);
+  --color-ink: var(--ink);
+  --color-ink-muted: var(--ink-muted);
+  --color-accent: var(--accent);
+  --color-accent-strong: var(--accent-strong);
+  --color-accent-contrast: var(--accent-contrast);
+  --color-accent-2: var(--accent-2);
+  --color-secondary: var(--secondary);
+  --color-border: var(--border);
+  --font-sans: var(--font-body);
+  --font-display: var(--font-heading);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+* {
+  box-sizing: border-box;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  margin: 0;
+  background:
+    radial-gradient(circle at 10% -10%, color-mix(in oklab, var(--accent) 18%, transparent), transparent 42%),
+    radial-gradient(circle at 90% 25%, color-mix(in oklab, var(--accent-2) 20%, transparent), transparent 44%),
+    var(--bg);
+  color: var(--ink);
+  font-family: var(--font-body), "Segoe UI", sans-serif;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: var(--font-heading), "Segoe UI", sans-serif;
+}
+
+a {
+  color: inherit;
+}
+
+::selection {
+  background: color-mix(in oklab, var(--accent) 55%, transparent);
+  color: var(--ink);
 }
